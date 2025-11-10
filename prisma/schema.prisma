@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Creator {
+  id                String   @id @default(uuid())
+  name              String
+  platform          String
+  handle            String
+  youtubeChannelId  String?
+  instagramId       String?
+  posts             Post[]
+  links             Link[]
+  createdAt         DateTime @default(now())
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  creator      Creator  @relation(fields: [creatorId], references: [id])
+  creatorId    String
+  platform     String
+  postUrl      String
+  title        String?
+  publishedAt  DateTime
+  metrics      PostMetric[]
+  createdAt    DateTime @default(now())
+}
+
+model PostMetric {
+  id          String   @id @default(uuid())
+  post        Post     @relation(fields: [postId], references: [id])
+  postId      String
+  capturedAt  DateTime @default(now())
+  views       Int
+}
+
+model Link {
+  id          String   @id @default(uuid())
+  creator     Creator  @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  originalUrl String
+  shortCode   String   @unique
+  clickCount  Int      @default(0)
+  clicks      LinkClick[]
+  createdAt   DateTime @default(now())
+}
+
+model LinkClick {
+  id        String   @id @default(uuid())
+  link      Link     @relation(fields: [linkId], references: [id])
+  linkId    String
+  clickedAt DateTime @default(now())
+  userAgent String?
+  ip        String?
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Creator {
+  id                String   @id @default(uuid())
+  name              String
+  platform          String
+  handle            String
+  youtubeChannelId  String?
+  instagramId       String?
+  posts             Post[]
+  links             Link[]
+  createdAt         DateTime @default(now())
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  creator      Creator  @relation(fields: [creatorId], references: [id])
+  creatorId    String
+  platform     String
+  postUrl      String
+  title        String?
+  publishedAt  DateTime
+  metrics      PostMetric[]
+  createdAt    DateTime @default(now())
+}
+
+model PostMetric {
+  id          String   @id @default(uuid())
+  post        Post     @relation(fields: [postId], references: [id])
+  postId      String
+  capturedAt  DateTime @default(now())
+  views       Int
+}
+
+model Link {
+  id          String   @id @default(uuid())
+  creator     Creator  @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  originalUrl String
+  shortCode   String   @unique
+  clickCount  Int      @default(0)
+  clicks      LinkClick[]
+  createdAt   DateTime @default(now())
+}
+
+model LinkClick {
+  id        String   @id @default(uuid())
+  link      Link     @relation(fields: [linkId], references: [id])
+  linkId    String
+  clickedAt DateTime @default(now())
+  userAgent String?
+  ip        String?
+}
