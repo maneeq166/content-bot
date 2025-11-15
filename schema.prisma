@@ -31,7 +31,7 @@ model Post {
   creator      Creator  @relation(fields: [creatorId], references: [id])
   creatorId    String
   platform     String
-  postUrl      String
+  postUrl      String   @unique
   title        String?
   publishedAt  DateTime
   metrics      PostMetric[]
