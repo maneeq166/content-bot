@@ -1,44 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma");
-const { fetchYouTubeVideos } = require("../services/youtube");
-const { fetchInstagramPosts } = require("../services/instagram");
+const { fetchCreatorPosts } = require("../services/fetchPosts");
 
+// Trigger full fetch for all creators (protected in production)
 router.post("/fetch", async (req, res) => {
-  const creators = await prisma.creator.findMany();
-
-  for (const c of creators) {
-    let posts = [];
-
-    if (c.platform === "youtube") {
-      posts = await fetchYouTubeVideos(c.youtubeChannelId);
-    } else if (c.platform === "instagram") {
-      posts = await fetchInstagramPosts(c.instagramId);
+  try {
+    const creators = await prisma.creator.findMany();
+    for (const c of creators) {
+      await fetchCreatorPosts(c);
     }
-
-    for (const p of posts) {
-      const post = await prisma.post.upsert({
-        where: { postUrl: p.postUrl },
-        update: {},
-        create: {
-          creatorId: c.id,
-          platform: c.platform,
-          postUrl: p.postUrl,
-          title: p.title,
-          publishedAt: new Date(p.publishedAt)
-        }
-      });
-
-      await prisma.postMetric.create({
-        data: {
-          postId: post.id,
-          views: p.views
-        }
-      });
-    }
+    res.json({ ok: true, message: "Fetched for all creators" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || String(err) });
   }
-
-  res.json({ message: "Fetched & stored" });
 });
 
 module.exports = router;

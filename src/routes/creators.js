@@ -14,17 +14,18 @@ function auth(req, res, next) {
   }
 }
 
+// create creator
 router.post("/", auth, async (req, res) => {
+  const { name, platform, handle, youtubeChannelId, instagramId } = req.body;
   const creator = await prisma.creator.create({
-    data: req.body
+    data: { name, platform, handle, youtubeChannelId, instagramId }
   });
   res.json(creator);
 });
 
+// list creators
 router.get("/", auth, async (req, res) => {
-  const creators = await prisma.creator.findMany({
-    orderBy: { createdAt: "desc" }
-  });
+  const creators = await prisma.creator.findMany({ orderBy: { createdAt: "desc" } });
   res.json(creators);
 });
 

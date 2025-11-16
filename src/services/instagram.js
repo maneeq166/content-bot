@@ -1,33 +1,36 @@
 const fetch = require("node-fetch");
 
-async function fetchInstagramPosts(igUserId) {
-  const url =
-    `https://graph.facebook.com/v17.0/${igUserId}/media?fields=id,caption,media_type,permalink,timestamp&access_token=${process.env.IG_ACCESS_TOKEN}`;
-
-  const mediaRes = await fetch(url);
-  const media = await mediaRes.json();
-
-  const results = [];
-
-  for (const item of media.data) {
-    let views = 0;
-
-    if (item.media_type === "VIDEO") {
-      const iv =
-        `https://graph.facebook.com/v17.0/${item.id}/insights?metric=video_views&access_token=${process.env.IG_ACCESS_TOKEN}`;
-      const insights = await (await fetch(iv)).json();
-      views = insights.data?.[0]?.values?.[0]?.value || 0;
-    }
-
-    results.push({
-      postUrl: item.permalink,
-      title: item.caption || "",
-      publishedAt: item.timestamp,
-      views
-    });
-  }
-
-  return results;
+/**
+ * Fetch media list for an IG user (instagram business user id).
+ * Returns array of { id, media_type, timestamp, caption, permalink }
+ */
+async function fetchInstagramMedia(igUserId, accessToken) {
+  const url = `https://graph.facebook.com/v17.0/${igUserId}/media?fields=id,media_type,timestamp,caption,permalink&access_token=${accessToken}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(JSON.stringify(json.error));
+  return json.data || [];
 }
 
-module.exports = { fetchInstagramPosts };
+/**
+ * Fetch insights for a single post ID.
+ * Returns an object { impressions, reach, engagement, video_views }
+ */
+async function fetchInstagramInsights(postId, accessToken) {
+  const metrics = "impressions,reach,engagement,video_views";
+  const url = `https://graph.facebook.com/v17.0/${postId}/insights?metric=${metrics}&access_token=${accessToken}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(JSON.stringify(json.error));
+
+  // Convert array to map
+  const map = {};
+  if (Array.isArray(json.data)) {
+    for (const m of json.data) {
+      map[m.name] = (m.values && m.values[0] && m.values[0].value) || 0;
+    }
+  }
+  return map;
+}
+
+module.exports = { fetchInstagramMedia, fetchInstagramInsights };
